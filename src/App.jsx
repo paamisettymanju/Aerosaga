@@ -1,0 +1,128 @@
+import { useState } from "react";
+import "./App.css";
+
+function App() {
+  const [droneId, setDroneId] = useState("DRONE-01");
+  const [workflowId, setWorkflowId] = useState("");
+  const [status, setStatus] = useState("Not Started");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const startMission = async () => {
+    setLoading(true);
+    setMessage("");
+    setStatus("Starting...");
+
+    try {
+      const response = await fetch(
+          `http://localhost:8080/api/missions?droneId=${encodeURIComponent(droneId)}`,
+          { method: "POST" }
+      );
+
+      if (!response.ok) throw new Error("Unable to start mission");
+
+      const result = await response.text();
+      const id = result.split("Workflow ID: ")[1]?.trim();
+
+      if (!id) throw new Error(result);
+
+      setWorkflowId(id);
+      setStatus("RUNNING");
+      setMessage("Mission started successfully!");
+    } catch (error) {
+      setStatus("ERROR");
+      setMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkStatus = async () => {
+    if (!workflowId) return;
+
+    try {
+      const response = await fetch(
+          `http://localhost:8080/api/missions/${encodeURIComponent(workflowId)}/status`
+      );
+
+      const result = await response.text();
+      setStatus(result);
+    } catch {
+      setMessage("Unable to connect to backend.");
+    }
+  };
+  const abortMission = async () => {
+    if (!workflowId) {
+      setMessage("Please start a mission first!");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+          `http://localhost:8080/api/missions/${encodeURIComponent(workflowId)}/abort`,
+          {
+            method: "POST"
+          }
+      );
+
+      const result = await response.text();
+      setMessage(result);
+      await checkStatus();
+    } catch{
+      setMessage("Failed to abort mission.");
+    }
+  };
+
+  return (
+      <div className="dashboard">
+        <header className="header">
+          <h1>🚁 AeroSaga</h1>
+          <p>Autonomous Drone Mission Control</p>
+        </header>
+
+        <main className="main">
+          <section className="panel">
+            <h2>Mission Control</h2>
+            <label>Drone ID</label>
+
+            <input
+                value={droneId}
+                onChange={(e) => setDroneId(e.target.value)}
+                placeholder="Enter drone ID"
+            />
+
+            <button onClick={startMission} disabled={loading || !droneId.trim()}>
+              {loading ? "Starting..." : "Start Mission"}
+            </button>
+
+            <button
+                className="secondary"
+                onClick={checkStatus}
+                disabled={!workflowId}
+            >
+              Check Mission Status
+            </button>
+            <button
+                className="secondary"
+                onClick={abortMission}
+                disabled={!workflowId}
+            >
+              Abort Mission
+            </button>
+
+            <p className="message">{message}</p>
+          </section>
+
+          <section className="panel">
+            <h2>Mission Details</h2>
+            <p><strong>Drone:</strong> {droneId}</p>
+            <p><strong>Workflow ID:</strong></p>
+            <p className="workflow">{workflowId || "No mission started yet"}</p>
+            <p><strong>Status:</strong> <span className="status">{status}</span></p>
+          </section>
+        </main>
+      </div>
+  );
+}
+
+export default App;
