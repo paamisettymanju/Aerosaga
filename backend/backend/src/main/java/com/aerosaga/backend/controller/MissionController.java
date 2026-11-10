@@ -1,6 +1,7 @@
 package com.aerosaga.backend.controller;
 
 import com.aerosaga.backend.service.TemporalMissionService;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -44,5 +45,14 @@ public class MissionController {
         String result = temporalMissionService.abortMission(workflowId);
 
         return ResponseEntity.ok(result);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<String> handleConstraintViolation(ConstraintViolationException exception) {
+        String message = exception.getConstraintViolations().stream()
+                .map(violation -> violation.getMessage())
+                .findFirst()
+                .orElse("Invalid mission request.");
+        return ResponseEntity.badRequest().body(message);
     }
 }
