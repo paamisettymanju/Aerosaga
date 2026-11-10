@@ -3,7 +3,7 @@ package com.aerosaga.backend.controller;
 import com.aerosaga.backend.service.TemporalMissionService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
-@CrossOrigin(origins="http://localhost:5173")
+@CrossOrigin(origins = {"http://localhost:5173", "http://127.0.0.1:5173"})
 @RestController
 @RequestMapping("/api/missions")
 public class MissionController {
