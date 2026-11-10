@@ -1,7 +1,6 @@
 import { useState } from "react";
+import { apiRequest } from "./api";
 import "./App.css";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 function App() {
   const [droneId, setDroneId] = useState("DRONE-01");
@@ -16,14 +15,10 @@ function App() {
     setStatus("Starting...");
 
     try {
-      const response = await fetch(
-          `${API_BASE_URL}/api/missions?droneId=${encodeURIComponent(droneId)}`,
-          { method: "POST" }
+      const result = await apiRequest(
+          `/api/missions?droneId=${encodeURIComponent(droneId)}`,
+          { method: "POST" },
       );
-
-      if (!response.ok) throw new Error("Unable to start mission");
-
-      const result = await response.text();
       const id = result.split("Workflow ID: ")[1]?.trim();
 
       if (!id) throw new Error(result);
@@ -43,14 +38,12 @@ function App() {
     if (!workflowId) return;
 
     try {
-      const response = await fetch(
-          `${API_BASE_URL}/api/missions/${encodeURIComponent(workflowId)}/status`
+      const result = await apiRequest(
+          `/api/missions/${encodeURIComponent(workflowId)}/status`,
       );
-
-      const result = await response.text();
       setStatus(result);
-    } catch {
-      setMessage("Unable to connect to backend.");
+    } catch (error) {
+      setMessage(error.message);
     }
   };
   const abortMission = async () => {
@@ -60,18 +53,14 @@ function App() {
     }
 
     try {
-      const response = await fetch(
-          `${API_BASE_URL}/api/missions/${encodeURIComponent(workflowId)}/abort`,
-          {
-            method: "POST"
-          }
+      const result = await apiRequest(
+          `/api/missions/${encodeURIComponent(workflowId)}/abort`,
+          { method: "POST" },
       );
-
-      const result = await response.text();
       setMessage(result);
       await checkStatus();
-    } catch{
-      setMessage("Failed to abort mission.");
+    } catch (error) {
+      setMessage(error.message);
     }
   };
 
