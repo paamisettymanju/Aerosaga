@@ -1,6 +1,8 @@
 import { useState } from "react";
 import "./App.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
 function App() {
   const [droneId, setDroneId] = useState("DRONE-01");
   const [workflowId, setWorkflowId] = useState("");
@@ -15,7 +17,7 @@ function App() {
 
     try {
       const response = await fetch(
-          `http://localhost:8080/api/missions?droneId=${encodeURIComponent(droneId)}`,
+          `${API_BASE_URL}/api/missions?droneId=${encodeURIComponent(droneId)}`,
           { method: "POST" }
       );
 
@@ -42,7 +44,7 @@ function App() {
 
     try {
       const response = await fetch(
-          `http://localhost:8080/api/missions/${encodeURIComponent(workflowId)}/status`
+          `${API_BASE_URL}/api/missions/${encodeURIComponent(workflowId)}/status`
       );
 
       const result = await response.text();
@@ -59,7 +61,7 @@ function App() {
 
     try {
       const response = await fetch(
-          `http://localhost:8080/api/missions/${encodeURIComponent(workflowId)}/abort`,
+          `${API_BASE_URL}/api/missions/${encodeURIComponent(workflowId)}/abort`,
           {
             method: "POST"
           }
