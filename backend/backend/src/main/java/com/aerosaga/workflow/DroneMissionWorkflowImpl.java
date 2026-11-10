@@ -2,6 +2,7 @@ package com.aerosaga.workflow;
 
 import com.aerosaga.activity.DroneActivities;
 import io.temporal.activity.ActivityOptions;
+import io.temporal.common.RetryOptions;
 import io.temporal.workflow.Workflow;
 
 import java.time.Duration;
@@ -12,6 +13,12 @@ public class DroneMissionWorkflowImpl implements DroneMissionWorkflow {
             DroneActivities.class,
             ActivityOptions.newBuilder()
                     .setStartToCloseTimeout(Duration.ofMinutes(2))
+                    .setRetryOptions(RetryOptions.newBuilder()
+                            .setInitialInterval(Duration.ofSeconds(1))
+                            .setMaximumInterval(Duration.ofSeconds(10))
+                            .setBackoffCoefficient(2.0)
+                            .setMaximumAttempts(3)
+                            .build())
                     .build()
     );
 
