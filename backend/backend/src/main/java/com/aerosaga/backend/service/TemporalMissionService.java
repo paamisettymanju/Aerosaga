@@ -5,6 +5,8 @@ import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowExecutionDescription;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.client.WorkflowStub;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -50,7 +52,11 @@ public class TemporalMissionService {
 
             return formatFinalStatus(stub, description);
         } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "Unable to retrieve mission status from Temporal: " + e.getMessage(),
+                    e
+            );
         }
     }
 
@@ -66,11 +72,15 @@ public class TemporalMissionService {
             workflow.abortMission();
             return "Abort signal sent successfully!";
         } catch (Exception e) {
-            String status = getMissionStatus(workflowId);
-            if (!status.startsWith("ERROR:")) {
-                return "Mission already finished: " + status;
+            try {
+                return "Mission already finished: " + getMissionStatus(workflowId);
+            } catch (ResponseStatusException statusException) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_GATEWAY,
+                        "Unable to send abort signal to Temporal: " + e.getMessage(),
+                        e
+                );
             }
-            return "ERROR: " + e.getMessage();
         }
     }
 
