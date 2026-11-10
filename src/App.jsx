@@ -14,6 +14,7 @@ function App() {
   const [checking, setChecking] = useState(false);
   const [aborting, setAborting] = useState(false);
   const [message, setMessage] = useState("");
+  const missionIsRunning = status.includes("RUNNING");
 
   useEffect(() => {
     window.localStorage.setItem("aerosaga.droneId", droneId);
@@ -161,7 +162,7 @@ function App() {
                 type="button"
                 className="secondary"
                 onClick={abortMission}
-                disabled={!workflowId || checking || aborting}
+                disabled={!workflowId || !missionIsRunning || checking || aborting}
             >
               {aborting ? "Aborting..." : "Abort Mission"}
             </button>
