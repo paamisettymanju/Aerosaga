@@ -27,6 +27,36 @@ function App() {
     }
   }, [workflowId]);
 
+  useEffect(() => {
+    if (!workflowId) return undefined;
+
+    let cancelled = false;
+    let timeoutId;
+    const pollStatus = async () => {
+      try {
+        const result = await apiRequest(
+            `/api/missions/${encodeURIComponent(workflowId)}/status`,
+        );
+        if (cancelled) return;
+
+        setStatus(result);
+        if (result.includes("WORKFLOW_EXECUTION_STATUS_RUNNING")) {
+          timeoutId = window.setTimeout(pollStatus, 2000);
+        }
+      } catch (error) {
+        if (cancelled) return;
+        setMessage(error.message);
+        timeoutId = window.setTimeout(pollStatus, 5000);
+      }
+    };
+
+    pollStatus();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [workflowId]);
+
   const startMission = async (event) => {
     event.preventDefault();
     setLoading(true);
