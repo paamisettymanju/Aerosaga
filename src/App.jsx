@@ -7,6 +7,8 @@ function App() {
   const [workflowId, setWorkflowId] = useState("");
   const [status, setStatus] = useState("Not Started");
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [aborting, setAborting] = useState(false);
   const [message, setMessage] = useState("");
 
   const startMission = async (event) => {
@@ -36,8 +38,9 @@ function App() {
   };
 
   const checkStatus = async () => {
-    if (!workflowId) return;
+    if (!workflowId || checking) return;
 
+    setChecking(true);
     try {
       const result = await apiRequest(
           `/api/missions/${encodeURIComponent(workflowId)}/status`,
@@ -45,6 +48,8 @@ function App() {
       setStatus(result);
     } catch (error) {
       setMessage(error.message);
+    } finally {
+      setChecking(false);
     }
   };
   const abortMission = async () => {
@@ -53,6 +58,7 @@ function App() {
       return;
     }
 
+    setAborting(true);
     try {
       const result = await apiRequest(
           `/api/missions/${encodeURIComponent(workflowId)}/abort`,
@@ -62,6 +68,8 @@ function App() {
       await checkStatus();
     } catch (error) {
       setMessage(error.message);
+    } finally {
+      setAborting(false);
     }
   };
 
@@ -89,7 +97,7 @@ function App() {
                   pattern="[A-Za-z0-9][A-Za-z0-9_-]{0,39}"
                   title="Use 1–40 letters, numbers, hyphens, or underscores; start with a letter or number."
               />
-              <button type="submit" disabled={loading || !droneId.trim()}>
+              <button type="submit" disabled={loading || checking || aborting || !droneId.trim()}>
                 {loading ? "Starting..." : "Start Mission"}
               </button>
             </form>
@@ -98,17 +106,17 @@ function App() {
                 type="button"
                 className="secondary"
                 onClick={checkStatus}
-                disabled={!workflowId}
+                disabled={!workflowId || checking || aborting}
             >
-              Check Mission Status
+              {checking ? "Checking..." : "Check Mission Status"}
             </button>
             <button
                 type="button"
                 className="secondary"
                 onClick={abortMission}
-                disabled={!workflowId}
+                disabled={!workflowId || checking || aborting}
             >
-              Abort Mission
+              {aborting ? "Aborting..." : "Abort Mission"}
             </button>
 
             <p className="message" role="status" aria-live="polite">{message}</p>
