@@ -15,6 +15,20 @@ function App() {
   const [aborting, setAborting] = useState(false);
   const [message, setMessage] = useState("");
   const missionIsRunning = status.includes("RUNNING");
+  const [missionHistory, setMissionHistory] = useState(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem("aerosaga.missionHistory") || "[]");
+      return Array.isArray(saved)
+          ? saved.filter((mission) => mission?.workflowId && mission?.droneId).slice(0, 10)
+          : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    window.localStorage.setItem("aerosaga.missionHistory", JSON.stringify(missionHistory));
+  }, [missionHistory]);
 
   useEffect(() => {
     window.localStorage.setItem("aerosaga.droneId", droneId);
@@ -75,6 +89,10 @@ function App() {
       if (!id) throw new Error(result);
 
       setWorkflowId(id);
+      setMissionHistory((history) => [
+        { workflowId: id, droneId, startedAt: new Date().toISOString() },
+        ...history.filter((mission) => mission.workflowId !== id),
+      ].slice(0, 10));
       setStatus("RUNNING");
       setMessage("Mission started successfully!");
     } catch (error) {
@@ -176,6 +194,34 @@ function App() {
             <p><strong>Workflow ID:</strong></p>
             <p className="workflow" aria-label="Workflow ID">{workflowId || "No mission started yet"}</p>
             <p><strong>Status:</strong> <span className="status" role="status" aria-live="polite">{status}</span></p>
+          </section>
+
+          <section className="panel history-panel">
+            <h2>Recent Missions</h2>
+            {missionHistory.length === 0 ? (
+              <p>No recent missions on this device.</p>
+            ) : (
+              <ul className="mission-history">
+                {missionHistory.map((mission) => (
+                  <li key={mission.workflowId}>
+                    <button
+                        type="button"
+                        className="history-item"
+                        aria-current={mission.workflowId === workflowId ? "true" : undefined}
+                        onClick={() => {
+                          setWorkflowId(mission.workflowId);
+                          setDroneId(mission.droneId);
+                          setStatus("Checking mission...");
+                          setMessage("");
+                        }}
+                    >
+                      <span>{mission.droneId}</span>
+                      <span>{new Date(mission.startedAt).toLocaleString()}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         </main>
       </div>
