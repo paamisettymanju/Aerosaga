@@ -83,19 +83,22 @@ function App() {
         <main className="main">
           <section className="panel">
             <h2>Mission Control</h2>
-            <label>Drone ID</label>
+            <label htmlFor="drone-id">Drone ID</label>
 
             <input
+                id="drone-id"
+                name="droneId"
                 value={droneId}
                 onChange={(e) => setDroneId(e.target.value)}
                 placeholder="Enter drone ID"
             />
 
-            <button onClick={startMission} disabled={loading || !droneId.trim()}>
+            <button type="button" onClick={startMission} disabled={loading || !droneId.trim()}>
               {loading ? "Starting..." : "Start Mission"}
             </button>
 
             <button
+                type="button"
                 className="secondary"
                 onClick={checkStatus}
                 disabled={!workflowId}
@@ -103,6 +106,7 @@ function App() {
               Check Mission Status
             </button>
             <button
+                type="button"
                 className="secondary"
                 onClick={abortMission}
                 disabled={!workflowId}
@@ -110,15 +114,15 @@ function App() {
               Abort Mission
             </button>
 
-            <p className="message">{message}</p>
+            <p className="message" role="status" aria-live="polite">{message}</p>
           </section>
 
           <section className="panel">
             <h2>Mission Details</h2>
             <p><strong>Drone:</strong> {droneId}</p>
             <p><strong>Workflow ID:</strong></p>
-            <p className="workflow">{workflowId || "No mission started yet"}</p>
-            <p><strong>Status:</strong> <span className="status">{status}</span></p>
+            <p className="workflow" aria-label="Workflow ID">{workflowId || "No mission started yet"}</p>
+            <p><strong>Status:</strong> <span className="status" role="status" aria-live="polite">{status}</span></p>
           </section>
         </main>
       </div>
