@@ -9,7 +9,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const startMission = async () => {
+  const startMission = async (event) => {
+    event.preventDefault();
     setLoading(true);
     setMessage("");
     setStatus("Starting...");
@@ -74,19 +75,24 @@ function App() {
         <main className="main">
           <section className="panel">
             <h2>Mission Control</h2>
-            <label htmlFor="drone-id">Drone ID</label>
-
-            <input
-                id="drone-id"
-                name="droneId"
-                value={droneId}
-                onChange={(e) => setDroneId(e.target.value)}
-                placeholder="Enter drone ID"
-            />
-
-            <button type="button" onClick={startMission} disabled={loading || !droneId.trim()}>
-              {loading ? "Starting..." : "Start Mission"}
-            </button>
+            <form onSubmit={startMission}>
+              <label htmlFor="drone-id">Drone ID</label>
+              <input
+                  id="drone-id"
+                  name="droneId"
+                  value={droneId}
+                  onChange={(e) => setDroneId(e.target.value)}
+                  placeholder="Enter drone ID"
+                  autoComplete="off"
+                  required
+                  maxLength={40}
+                  pattern="[A-Za-z0-9][A-Za-z0-9_-]{0,39}"
+                  title="Use 1–40 letters, numbers, hyphens, or underscores; start with a letter or number."
+              />
+              <button type="submit" disabled={loading || !droneId.trim()}>
+                {loading ? "Starting..." : "Start Mission"}
+              </button>
+            </form>
 
             <button
                 type="button"
