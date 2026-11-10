@@ -1,15 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiRequest } from "./api";
 import "./App.css";
 
 function App() {
-  const [droneId, setDroneId] = useState("DRONE-01");
-  const [workflowId, setWorkflowId] = useState("");
+  const [droneId, setDroneId] = useState(
+      () => window.localStorage.getItem("aerosaga.droneId") || "DRONE-01",
+  );
+  const [workflowId, setWorkflowId] = useState(
+      () => window.localStorage.getItem("aerosaga.workflowId") ?? "",
+  );
   const [status, setStatus] = useState("Not Started");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
   const [aborting, setAborting] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    window.localStorage.setItem("aerosaga.droneId", droneId);
+  }, [droneId]);
+
+  useEffect(() => {
+    if (workflowId) {
+      window.localStorage.setItem("aerosaga.workflowId", workflowId);
+    } else {
+      window.localStorage.removeItem("aerosaga.workflowId");
+    }
+  }, [workflowId]);
 
   const startMission = async (event) => {
     event.preventDefault();
