@@ -14,6 +14,7 @@ function App() {
   const startMission = async (event) => {
     event.preventDefault();
     setLoading(true);
+    setWorkflowId("");
     setMessage("");
     setStatus("Starting...");
 
